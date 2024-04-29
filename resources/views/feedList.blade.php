@@ -2,7 +2,7 @@
     <div class="bg-gray-800 mb-10 card">
         <form method="POST" action="/feed" class="grow px-8 pt-6 pb-8 mb-4">
             @csrf
-            <h1 class="text-3xl text-white mb-5 font-bold">Add an RSS Feed</h1>
+            <h1 class="text-3xl text-white text-center md:text-left mb-5 font-bold">Add an RSS Feed</h1>
             <div class="flex flex-wrap">
                 <div class="w-full md:w-1/2 px-3">
                     <label class="block uppercase tracking-wide text-white text-xs font-bold mb-2" for="url">
@@ -22,9 +22,9 @@
         </form>
 
         <div class="px-8 pt-6 pb-8 mb-4">
-            @foreach ($list as $item)
+            @foreach ($feeds as $item)
             <div class="flex grow items-center justify-between p-3 mb-3 text-white card bg-gray-700">
-                <p class="break-all">{{ $item['title'] }}: <br class="inline md:hidden" /> {{ $item['url'] }}</p>
+                <p class="break-all">{{ $item->title }}: <br class="inline md:hidden" /> {{ $item->url }}</p>
                 <form method="POST" action="/feed">
                     @csrf
                     @method('DELETE')
@@ -33,11 +33,14 @@
                     <p class="px-3 mt-5 text-red-500 italic"> {{ $message }}</p>
                     @enderror
 
-                    <input class="hidden" name="feedId" id="feedId" type="number" value="{{ $item['id'] }}" />
+                    <input class="hidden" name="feedId" id="feedId" type="number" value="{{ $item->id }}" />
                     <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline" type="submit">Delete</button>
                 </form>
             </div>
             @endforeach
+            @if ($feeds->isEmpty())
+            <h1 class="text-2xl text-white text-center font-bold">Feeds List is Empty</h1>
+            @endif
         </div>
     </div>
 </x-layout>

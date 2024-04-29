@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use \App\Models\Feed;
-use \Illuminate\Support\Facades\DB;
 use \Illuminate\Support\Facades\Auth;
 
 class FeedController extends Controller
@@ -12,48 +11,7 @@ class FeedController extends Controller
     public function index()
     {
         $feeds = Auth::user()->feeds;
-
-        $items = [];
-        foreach ($feeds as $feed) {
-            if (@file_get_contents($feed->url)) {
-                $feedData = simplexml_load_file(rawurlencode($feed->url));
-                foreach ($feedData->channel->item as $item) {
-                    if ($item->children('media', true)->thumbnail) {
-                        $item['img'] = $item->children('media', true)->thumbnail->attributes()->url;
-                    }
-                    array_push($items, $item);
-                }
-            }
-        }
-
-        $sortby = request()->sortby;
-        if ($sortby == 'pubDate') {
-            usort($items, fn ($a, $b) => strtotime($b->pubDate) - strtotime($a->pubDate));
-        }
-        if ($sortby == 'title') {
-            usort($items, fn ($a, $b) => strcasecmp($a->title, $b->title));
-        }
-
-        return view('feed', ['items' => $items, 'sortby' => $sortby]);
-    }
-
-    public function list()
-    {
-        $feeds = Auth::user()->feeds;
-
-        $listData = [];
-        foreach ($feeds as $feed) {
-            if (@file_get_contents($feed->url)) {
-                $feedData = simplexml_load_file(rawurlencode($feed->url));
-                array_push($listData, [
-                    'id' => $feed->id,
-                    'title' => $feedData->channel->title,
-                    'url' => $feed->url
-                ]);
-            }
-        }
-
-        return view('list', ['list' => $listData]);
+        return view('feedList', ['feeds' => $feeds]);
     }
 
     public function store()
@@ -61,26 +19,11 @@ class FeedController extends Controller
         request()->validate([
             'url' => 'required|url'
         ]);
-
         $url = request('url');
 
-        if (@file_get_contents($url)) {
-            $feedData = simplexml_load_file(rawurlencode($url));
-            $title = $feedData->channel->title;
-        }
+        Feed::importFeed($url);
 
-        if (!Feed::where('url', $url)->count()) {
-            $feed = Feed::create([
-                'title' => $title,
-                'url' => $url
-            ]);
-        } else {
-            $feed = Feed::where('url', $url)->first();
-        }
-
-        $feed->users()->attach(Auth::user()->id);
-
-        return redirect('/feed/list');
+        return redirect('/feed');
     }
 
     public function destroy()
@@ -88,14 +31,10 @@ class FeedController extends Controller
         request()->validate([
             'feedId' => 'required|integer'
         ]);
-
         $id = request('feedId');
-        $feed = Feed::findOrFail($id);
-        $feed->users()->detach(Auth::user()->id);
-        if (!DB::table('feed_user')->where('feed_id', $id)->count()) {
-            $feed->delete();
-        }
 
-        return redirect('/feed/list');
+        Feed::deleteFeed($id);
+
+        return redirect('/feed');
     }
 }

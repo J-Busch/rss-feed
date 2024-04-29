@@ -8,7 +8,7 @@
         </div>
     </div>
     <div class="flex flex-col md:flex-row bg-gray-800 p-5 card">
-        <form method="POST" action="/login" class="grow w-1/2 px-8 pt-6 pb-8 mb-4">
+        <form method="POST" action="/login" class="grow w-full md:w-1/2 px-8 pt-6 pb-8 mb-4">
             @csrf
             <h2 class="text-3xl text-white mb-3 font-bold">Login</h2>
             <div class="mb-4">
@@ -40,7 +40,7 @@
             OR
         </div>
 
-        <form method="POST" action="/register" class="grow w-1/2 px-8 pt-6 pb-8 mb-4">
+        <form method="POST" action="/register" class="grow w-full md:w-1/2 px-8 pt-6 pb-8 mb-4">
             @csrf
             <h2 class="text-3xl text-white mb-3 font-bold">Sign Up</h2>
             <div class="mb-4">

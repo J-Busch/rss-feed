@@ -39,7 +39,7 @@ class Feed extends Model
         foreach ($items as $item) {
           Article::create([
             'title' => $item->title,
-            'description' => $item->description,
+            'description' => strip_tags($item->description),
             'link' => $item->link,
             'image' => $item->attributes()->image,
             'pub_date' => $item->pubDate,

@@ -13,7 +13,7 @@ class FeedController extends Controller
     {
         $feeds = Auth::user()->feeds;
 
-        $feedsWithData = [];
+        $items = [];
         foreach ($feeds as $feed) {
             if (@file_get_contents($feed->url)) {
                 $feedData = simplexml_load_file(rawurlencode($feed->url));
@@ -21,12 +21,20 @@ class FeedController extends Controller
                     if ($item->children('media', true)->thumbnail) {
                         $item['img'] = $item->children('media', true)->thumbnail->attributes()->url;
                     }
+                    array_push($items, $item);
                 }
-                array_push($feedsWithData, $feedData);
             }
         }
 
-        return view('feed', ['feeds' => $feedsWithData]);
+        $sortby = request()->sortby;
+        if ($sortby == 'pubDate') {
+            usort($items, fn ($a, $b) => strtotime($b->pubDate) - strtotime($a->pubDate));
+        }
+        if ($sortby == 'title') {
+            usort($items, fn ($a, $b) => strcasecmp($a->title, $b->title));
+        }
+
+        return view('feed', ['items' => $items, 'sortby' => $sortby]);
     }
 
     public function list()

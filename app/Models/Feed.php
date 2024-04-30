@@ -29,6 +29,8 @@ class Feed extends Model
         foreach ($feedData->channel->item as $item) {
           if ($item->children('media', true)->thumbnail) {
             $item['image'] = $item->children('media', true)->thumbnail->attributes()->url;
+          } elseif ($item->children('media', true)->content) {
+            $item['image'] = $item->children('media', true)->content->attributes()->url;
           } else {
             $item['image'] = null;
           }

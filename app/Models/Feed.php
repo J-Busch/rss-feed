@@ -22,7 +22,9 @@ class Feed extends Model
     $feedData = simplexml_load_string($response);
 
     if ($feedData) {
-      if ($feedData->channel->title && $feedData->channel->link) {
+      $title = $feedData->channel->title ?: '';
+
+      if ($title && $feedData->channel->link) {
         $items = [];
         foreach ($feedData->channel->item as $item) {
           if ($item->children('media', true)->thumbnail) {

@@ -14,46 +14,53 @@ class Feed extends Model
 
   public static function importFeed(string $url)
   {
-    // GET DATA
-    if (@file_get_contents($url)) {
-      $feedData = simplexml_load_file(rawurlencode($url));
-      $title = $feedData->channel->title;
-      $items = [];
+    libxml_use_internal_errors(true);
+    $feedData = simplexml_load_file(rawurlencode($url));
 
-      foreach ($feedData->channel->item as $item) {
-        if ($item->children('media', true)->thumbnail) {
-          $item['image'] = $item->children('media', true)->thumbnail->attributes()->url;
-        } else {
-          $item['image'] = '';
+    if ($feedData) {
+      $title = $feedData->channel->title ?: '';
+
+      if ($title && $feedData->channel->link) {
+        $items = [];
+        foreach ($feedData->channel->item as $item) {
+          if ($item->children('media', true)->thumbnail) {
+            $item['image'] = $item->children('media', true)->thumbnail->attributes()->url;
+          } else {
+            $item['image'] = null;
+          }
+          array_push($items, $item);
         }
-        array_push($items, $item);
-      }
 
-      // CREATE FEED AND ARTICLES
-      if (!static::where('url', $url)->count()) {
-        $feed = static::create([
-          'title' => $title,
-          'url' => $url
-        ]);
-
-        foreach ($items as $item) {
-          Article::create([
-            'title' => $item->title,
-            'description' => strip_tags($item->description),
-            'link' => $item->link,
-            'image' => $item->attributes()->image,
-            'pub_date' => $item->pubDate,
-            'feed_id' => $feed->id
+        // CREATE FEED AND ARTICLES
+        if (!static::where('url', $url)->count()) {
+          $feed = static::create([
+            'title' => $title,
+            'url' => $url
           ]);
+
+          foreach ($items as $item) {
+            Article::create([
+              'title' => $item->title,
+              'description' => strip_tags($item->description),
+              'link' => $item->link,
+              'image' => $item->attributes()->image,
+              'pub_date' => $item->pubDate ?: null,
+              'feed_id' => $feed->id
+            ]);
+          }
+        } else {
+          $feed = static::where('url', $url)->first();
+        }
+
+        // SUBSCRIBE THE USER
+        if (!DB::table('feed_user')->where('feed_id', $feed->id)->where('user_id', Auth::user()->id)->count()) {
+          $feed->users()->attach(Auth::user()->id);
         }
       } else {
-        $feed = static::where('url', $url)->first();
+        return back()->withErrors(['url' => 'Must be a valid RSS feed.']);
       }
-    }
-
-    // FEED_USER ENTRY
-    if (!DB::table('feed_user')->where('feed_id', $feed->id)->where('user_id', Auth::user()->id)->count()) {
-      $feed->users()->attach(Auth::user()->id);
+    } else {
+      return back()->withErrors(['url' => 'Response must be valid XML.']);
     }
   }
 
@@ -68,7 +75,7 @@ class Feed extends Model
 
   public function users()
   {
-    return $this->belongsToMany(User::class);
+    return $this->belongsToMany(User::class)->withPivot('feed_id');
   }
 
   public function articles()

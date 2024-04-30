@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->string('link');
-            $table->string('image');
-            $table->date('pub_date');
+            $table->string('image')->nullable();
+            $table->date('pub_date')->nullable();
             $table->foreignIdFor(\App\Models\Feed::class)->constrained()->cascadeOnDelete();
             $table->timestamps();
         });

@@ -48,6 +48,6 @@ class User extends Authenticatable
 
     public function feeds()
     {
-        return $this->belongsToMany(Feed::class);
+        return $this->belongsToMany(Feed::class)->withPivot('user_id');
     }
 }

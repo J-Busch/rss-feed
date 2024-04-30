@@ -4,29 +4,24 @@ namespace App\Models;
 
 use \Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use \Illuminate\Support\Facades\DB;
 use \App\Models\Feed;
 
 class Article extends Model
 {
     protected $guarded = [];
 
-    public static function getUserArticles(User $user, string $sortby)
+    public static function getUserArticles(User $user, string $sortby, string $sortorder)
     {
-        $result = [];
+        $feedIds = [];
         foreach ($user->feeds as $feed) {
-            foreach ($feed->articles()->get() as $article) {
-                array_push($result, $article);
-            }
+            array_push($feedIds, $feed->id);
         }
 
-        if ($sortby == 'pub_date') {
-            usort($result, fn ($a, $b) => strtotime($b->pub_date) - strtotime($a->pub_date));
-        }
-        if ($sortby == 'title') {
-            usort($result, fn ($a, $b) => strcasecmp($a->title, $b->title));
-        }
+        $articles = Article::whereIn('feed_id', $feedIds)->orderBy($sortby, $sortorder)->paginate(10);
 
-        return $result;
+        return $articles;
     }
 
     public function feeds()

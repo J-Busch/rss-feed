@@ -9,9 +9,10 @@ class ArticleController extends Controller
 {
     public function index()
     {
-        $sortby = request()->sortby ?? '';
-        $articles = Article::getUserArticles(Auth::user(), $sortby);
+        $sortby = request()->sortby ?? 'pub_date';
+        $sortorder = request('sortorder') ?: 'desc';
+        $articles = Article::getUserArticles(Auth::user(), $sortby, $sortorder);
 
-        return view('articles', ['articles' => $articles, 'sortby' => $sortby]);
+        return view('articles', ['articles' => $articles, 'sortby' => $sortby, 'sortorder' => $sortorder]);
     }
 }

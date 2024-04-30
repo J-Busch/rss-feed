@@ -49,7 +49,10 @@
         <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
         <a href="/feed" class="{{ request()->is('feed') ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }} block rounded-md px-3 py-2 text-base font-medium" aria-current="page">My List</a>
         <a href="/articles" class="{{ request()->is('articles') ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }} block rounded-md px-3 py-2 text-base font-medium">Feed</a>
-        <a href="logout" class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Logout</a>
+        <form method="POST" action="/logout">
+          @csrf
+          <button type="submit" class="text-gray-300 w-full text-left hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium">Logout</button>
+        </form>
       </div>
     </div>
   </nav>

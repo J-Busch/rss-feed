@@ -15,12 +15,14 @@ class Feed extends Model
   public static function importFeed(string $url)
   {
     libxml_use_internal_errors(true);
-    $feedData = simplexml_load_file(rawurlencode($url));
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    $feedData = simplexml_load_string($response);
 
     if ($feedData) {
-      $title = $feedData->channel->title ?: '';
-
-      if ($title && $feedData->channel->link) {
+      if ($feedData->channel->title && $feedData->channel->link) {
         $items = [];
         foreach ($feedData->channel->item as $item) {
           if ($item->children('media', true)->thumbnail) {

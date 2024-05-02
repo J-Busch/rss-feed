@@ -45,12 +45,15 @@ class Feed extends Model
           ]);
 
           foreach ($items as $item) {
+            $pubDate = date_create($item->pubDate);
+            $pubDate = date_format($pubDate, "Y/m/d H:i:s");
+
             Article::create([
               'title' => $item->title,
               'description' => strip_tags($item->description),
               'link' => $item->link,
               'image' => $item->attributes()->image,
-              'pub_date' => $item->pubDate ?: null,
+              'pub_date' => $pubDate ?: null,
               'feed_id' => $feed->id
             ]);
           }
